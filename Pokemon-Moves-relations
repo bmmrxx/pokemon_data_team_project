@@ -1,0 +1,75 @@
+import requests
+import pyodbc
+
+# Connecting to the database
+try:
+    conn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};Server=tcp:jarvis-cloud-verzamelen-joram.database.windows.net,1433;Database=BitAcademyDB;Uid=152791@student.horizoncollege.nl;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;Authentication=ActiveDirectoryInteractive")
+    cursor = conn.cursor()
+
+except pyodbc.Error as e:
+    print(f"Fout bij het verbinden met de database: {e}")
+
+def get_pokemon_data(pokemon_id):
+    url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_id}/"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        pokemon_data = response.json()
+        return pokemon_data
+    else:
+        print(f"Failed to fetch data for Pokemon with ID {pokemon_id}")
+        return None
+
+# Function that creates the Pokemon and moves table
+def create_pokemon_moves_table():
+    table_name = '[pokemon_moves_relation]'
+
+    # Commit changes before dropping the table
+    conn.commit()
+
+    # Drop the table if it exists
+    drop_table_query = f"IF OBJECT_ID('{table_name}', 'U') IS NOT NULL DROP TABLE {table_name}"
+    cursor.execute(drop_table_query)
+
+    # Create the new table
+    create_table_query = f'''
+    CREATE TABLE {table_name} (
+        PokemonId INT NOT NULL,
+        MoveId INT NOT NULL,
+        PRIMARY KEY (PokemonId, MoveId)
+    )
+    '''
+    cursor.execute(create_table_query)
+    conn.commit()
+
+# Function to insert Pokemon and moves data into the database
+def insert_pokemon_moves_data(pokemon_data):
+    insert_query = '''
+    INSERT INTO [pokemon_moves_relation] (PokemonId, MoveId)
+    VALUES (?, ?)
+    '''
+
+    data_list = []
+    for move_data in pokemon_data['moves']:
+        move_id = int(move_data['move']['url'].split('/')[-2])
+        data_list.append((pokemon_data['id'], move_id))
+
+    cursor.executemany(insert_query, data_list)
+    conn.commit()   
+
+# Function to loop through all Pokemon and save their moves to the database
+def get_and_save_all_pokemon_moves(num_pokemons):
+    create_pokemon_moves_table()
+
+    for pokemon_id in range(num_pokemons + 1):
+        print(f"Processing Pokemon ID: {pokemon_id}")
+        pokemon_data = get_pokemon_data(pokemon_id)
+        if pokemon_data:
+            try:
+                insert_pokemon_moves_data(pokemon_data)
+            except Exception as e:
+                print(f"Error inserting data for Pokemon with ID {pokemon_id}: {e}")
+
+if __name__ == "__main__":
+    num_pokemons = 1017
+    get_and_save_all_pokemon_moves(num_pokemons)
