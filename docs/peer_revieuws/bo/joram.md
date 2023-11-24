@@ -2,7 +2,7 @@ I really enjoyed working with Joram. He is very driven and gives good work.
 
 Rubric	- -	-	+/-	+	++
 Discipline & Work Ethic					++
-Helpfulness					            +
+Helpfulness					            ++
 Asks for feedback					    +/-
 Gives feedback					        +
 Concentration/focus					    +/-

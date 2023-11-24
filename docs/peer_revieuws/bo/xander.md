@@ -1,7 +1,7 @@
 I really enjoyed working with Xander. He is very helpfull and participating.
 
 Rubric	- -	-	+/-	+	++
-Discipline & Work Ethic			        +		
+Discipline & Work Ethic			        ++
 Helpfulness					            ++
 Asks for feedback				        +/-	
 Gives feedback					        +
